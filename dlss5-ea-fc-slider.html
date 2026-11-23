@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DLSS 5 Off vs On – EA Sports FC</title>
+<style>
+  html,body{margin:0;padding:0;background:transparent;}
+  .ba{position:relative;width:100%;max-width:768px;aspect-ratio:16/9;margin:0 auto;overflow:hidden;
+      user-select:none;-webkit-user-select:none;touch-action:pan-y;cursor:ew-resize;background:#000;}
+  .ba{container-type:inline-size;}
+  .layer{position:absolute;inset:0;pointer-events:none;}
+  .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  .ba .top{clip-path:inset(0 calc(100% - var(--pos,50%)) 0 0);}
+  .line{position:absolute;top:0;bottom:0;left:var(--pos,50%);width:2px;margin-left:-1px;pointer-events:none;
+        background:#fff;
+        box-shadow:0 0 3px rgba(0,0,0,.25);}
+  .handle{position:absolute;top:50%;left:var(--pos,50%);width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;
+          background:linear-gradient(to bottom,#0b1d3a 0%,#000 100%);box-shadow:0 2px 6px rgba(0,0,0,.35);
+          display:flex;align-items:center;justify-content:center;outline:none;cursor:ew-resize;}
+  .handle:focus-visible{box-shadow:0 0 0 2px #fff,0 2px 6px rgba(0,0,0,.35);}
+  .handle svg{width:26px;height:16px;display:block;}
+</style>
+</head>
+<body>
+<div class="ba" id="ba">
+  <div class="layer">
+    <img src="https://www.cnet.com/wp-content/uploads/sites/2/DLSS-5-ON_PCMag.png" alt="EA Sports FC with DLSS 5 on">
+  </div>
+  <div class="layer top">
+    <img src="https://www.cnet.com/wp-content/uploads/sites/2/DLSS-5-OFF_PCMag.png" alt="EA Sports FC with DLSS 5 off">
+  </div>
+  <div class="line"></div>
+  <div class="handle" role="slider" tabindex="0" aria-label="Compare DLSS 5 off and on"
+       aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><svg viewBox="0 0 26 16" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="square"><path d="M8 1 1 8l7 7M18 1l7 7-7 7"/></svg></div>
+</div>
+<script>
+(function(){
+  var el=document.getElementById('ba'),h=el.querySelector('.handle'),drag=false;
+  function set(p){p=Math.max(0,Math.min(100,p));el.style.setProperty('--pos',p+'%');h.setAttribute('aria-valuenow',Math.round(p));}
+  function fromX(x){var r=el.getBoundingClientRect();set((x-r.left)/r.width*100);}
+  el.addEventListener('pointerdown',function(e){drag=true;el.setPointerCapture(e.pointerId);fromX(e.clientX);});
+  el.addEventListener('pointermove',function(e){if(drag)fromX(e.clientX);});
+  el.addEventListener('pointerup',function(){drag=false;});
+  el.addEventListener('pointercancel',function(){drag=false;});
+  h.addEventListener('keydown',function(e){
+    var v=+h.getAttribute('aria-valuenow'),s=e.shiftKey?10:2;
+    if(e.key==='ArrowLeft'){set(v-s);e.preventDefault();}
+    else if(e.key==='ArrowRight'){set(v+s);e.preventDefault();}
+    else if(e.key==='Home'){set(0);e.preventDefault();}
+    else if(e.key==='End'){set(100);e.preventDefault();}
+  });
+  set(50);
+})();
+</script>
+</body>
+</html>
