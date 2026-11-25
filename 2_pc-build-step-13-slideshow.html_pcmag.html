@@ -96,13 +96,44 @@
   .arrow:focus-visible { outline: 2px solid #121218; outline-offset: 3px; }
   .arrow[disabled] { opacity: .25; cursor: default; transform: none; background: #121218; }
   .arrow svg { width: 22px; height: 22px; }
+  /* Enlarge button */
+  .media { cursor: zoom-in; }
+  .zoom-btn {
+    position: absolute; top: 12px; right: 12px; z-index: 2;
+    width: 36px; height: 36px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 0; padding: 0; cursor: pointer;
+    background: rgba(18,18,24,.75); color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    transition: background .15s ease, transform .15s ease;
+  }
+  .zoom-btn:hover { background: rgba(18,18,24,.95); transform: scale(1.06); }
+  .zoom-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .zoom-btn svg { width: 18px; height: 18px; }
+  .zoom-btn .icon-collapse { display: none; }
+
+  /* Enlarged: same design, filling the bigger iframe the host page provides */
+  body.expanded .slideshow {
+    width: 100%; max-width: none; height: 100vh;
+    border-radius: 0;
+    display: flex; flex-direction: column;
+  }
+  body.expanded .media { flex: 0 1 auto; min-height: 0; cursor: zoom-out; }
+  body.expanded .media img { object-fit: contain; }
+  body.expanded .text, body.expanded .nav { flex: 0 0 auto; }
+  body.expanded .zoom-btn .icon-expand { display: none; }
+  body.expanded .zoom-btn .icon-collapse { display: block; }
 </style>
 </head>
 <body>
 
 <div class="slideshow" id="slideshow" role="region" aria-roledescription="carousel" aria-label="PC Build Story: Step 13" tabindex="0">
-  <div class="media">
+  <div class="media" id="media">
     <img id="slideImg" alt="" src="">
+    <button class="zoom-btn" id="zoomBtn" type="button" aria-label="Enlarge image">
+      <svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+      <svg class="icon-collapse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
   </div>
   <div class="text" aria-live="polite">
     <p class="credit" id="slideCredit"></p>
@@ -135,7 +166,7 @@
     ["1795627945313.jpg", "Next, you'll be asked to review the Windows EULA; scroll your way to the bottom of the text and hit Accept when ready."],
     ["1795627969574.jpg", "After a “Please Wait” progress screen, Windows should take you to this screen, which enumerates the bootable disks that can accept your Windows install. Depending on the drives you have installed, you'll get a screen that looks something like the above."],
     ["1795628021082.jpg", "Three of the drives are being detected as Unallocated Space, since they are new and unformatted. The Toshiba 4TB hard drive is showing up as Disk 0 (with Unallocated Space housing most of the capacity, 3.6TB). The first of the M.2 SSDs, showing up as 1.8TB of Unallocated Space, is our WD Black SSD (the one I plan to use as the boot drive), is Disk 1. So I’ll choose the Disk 1 block of Unallocated Space as my install destination, as shown above, and hit Next."],
-    ["1795628021082.jpg", "The next screen is confirmation of this action, on which you’ll hit Install."],
+    ["1795628073335.jpg", "The next screen is confirmation of this action, on which you’ll hit Install."],
     ["1795628090990.jpg", "Confirming that, you’re bounced to the first of several blue progress screens you’ll see. Now’s a good time for a coffee break and a stretch."],
     ["1795628132525.jpg", "You will see some restarts along the way; let Windows do its thing."],
     ["1795628156549.jpg", "Here’s how you know you’re getting close."],
@@ -153,8 +184,8 @@
     ["1795628642658.jpg", "It’s up to you how to proceed on this page. If you use an existing Microsoft account, you may be asked to verify your identity or two-factor authenticate into proceeding. (If you don’t have one, you’ll have to create one on the spot.)"],
     ["1795628672983.jpg", "I added our lab’s general Microsoft account that we use for a variety of purposes, and chose to sign in via password. hitting the link for “Use your password instead.”"],
     ["1795628707188.jpg", "Here goes the password page. Enter and click Sign In."],
-    ["1795628807173.jpg", "OK, after bypassing the login bridge trolls, you’ll be prompted to set up a PIN to log in to your PC. It can be just numbers, or if you hit the checkbox, you can incorporate letters or symbols."],
-    ["1795628782309.jpg", "That's followed by Windows 11’s privacy settings setup. The toggles all default to Yes; I generally slide them all to No, but do as you see fit. (Depending on your screen resolution, you may need to scroll down to see more privacy choices below the initial screen. Half are hidden here.)"],
+    ["1795628782309.jpg", "OK, after bypassing the login bridge trolls, you’ll be prompted to set up a PIN to log in to your PC. It can be just numbers, or if you hit the checkbox, you can incorporate letters or symbols."],
+    ["1795628807173.jpg", "That's followed by Windows 11’s privacy settings setup. The toggles all default to Yes; I generally slide them all to No, but do as you see fit. (Depending on your screen resolution, you may need to scroll down to see more privacy choices below the initial screen. Half are hidden here.)"],
     ["1795628855536.jpg", "On the next screen, I hit Continue…"],
     ["1795628894010.jpg", "…and in our case, because our Microsoft account was not new (indeed, it was our lab testing Windows account that I used!), we were asked whether we wanted to restore settings from one of the many PCs previously associated with it. If you’re carrying over a Microsoft account from another relevant PC that this one will be replacing, you may want to do this. Otherwise, instead, do as I did and select “Set up as a new PC,” near the bottom of the screen."],
     ["1795628931479.jpg", "You’ll have to bypass this “Are you sure?” screen that will follow. Again choose “Set up as a new PC.”"],
@@ -186,7 +217,10 @@
 
   // Tell the parent page the new height so the iframe can grow/shrink with the caption.
   function postHeight() {
-    var h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    var m = document.getElementById('media');
+    var h = Math.ceil(m.offsetWidth * 9 / 16 +
+      document.querySelector('.text').offsetHeight +
+      document.querySelector('.nav').offsetHeight);
     try {
       window.parent.postMessage({ type: 'embed-size', height: h }, '*');
       window.parent.postMessage({ 'frameHeight': h }, '*');
@@ -212,10 +246,47 @@
     postHeight();
   }
 
+  // ---- Click to enlarge ----
+  // Asks the host page to enlarge the iframe (needs the embed script on the page).
+  // If the page doesn't answer, opens the full-size photo in a new tab instead.
+  var expanded = false, ackTimer = null;
+  var zoomBtn = document.getElementById('zoomBtn');
+
+  function toHost(msg) { try { window.parent.postMessage(msg, '*'); } catch (e) {} }
+
+  function requestExpand() {
+    if (window.parent === window) { window.open(IMG + slides[i][0], '_blank', 'noopener'); return; }
+    toHost({ type: 'embed-expand' });
+    clearTimeout(ackTimer);
+    ackTimer = setTimeout(function () { window.open(IMG + slides[i][0], '_blank', 'noopener'); }, 600);
+  }
+  function requestCollapse() { toHost({ type: 'embed-collapse' }); }
+
+  function setExpanded(on) {
+    clearTimeout(ackTimer);
+    expanded = on;
+    document.body.classList.toggle('expanded', on);
+    zoomBtn.setAttribute('aria-label', on ? 'Close enlarged view' : 'Enlarge image');
+    postHeight();
+  }
+
+  window.addEventListener('message', function (e) {
+    if (e.source !== window.parent || !e.data || e.data.type !== 'embed-expanded') return;
+    setExpanded(!!e.data.expanded);
+  });
+
+  document.getElementById('media').addEventListener('click', function () {
+    expanded ? requestCollapse() : requestExpand();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && expanded) { requestCollapse(); e.preventDefault(); }
+  });
+
   prev.addEventListener('click', function () { show(i - 1); });
   next.addEventListener('click', function () { show(i + 1); });
 
-  root.addEventListener('keydown', function (e) {
+  // Arrow keys (anywhere in the frame, so they also work when enlarged)
+  document.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowLeft') { show(i - 1); e.preventDefault(); }
     if (e.key === 'ArrowRight') { show(i + 1); e.preventDefault(); }
   });
